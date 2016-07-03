@@ -1,1 +1,2 @@
+networkx
 -e git://github.com/butjar/pox.git@carp#egg=pox
