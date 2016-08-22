@@ -78,13 +78,24 @@ class Toponizer(object):
                                                    link.port1,
                                                    link.port2)
         elif(event.removed):
-            pass
+            link = event.link
+            log.debug('Removing link between <s{}:p{}>'
+                      'and <s{}:p{}> from topology'
+                      .format(link.dpid1,
+                              link.port1,
+                              link.dpid2,
+                              link.port2))
+            self.__remove_switch_to_switch_connection(link.dpid1,
+                                                      link.dpid2,
+                                                      link.port1,
+                                                      link.port2)
         else:
             log.error('Unknown event on LinkEvent: {}'.format(event))
 
         log.debug('Updating minimal spanning tree '
                   'and pushing flow and port mods')
         self.mst = self.__minimal_spanning_tree()
+        log.debug(self.mst)
 
     def _handle_HostEvent(self, event):
         if event.join:
@@ -142,6 +153,19 @@ class Toponizer(object):
                        port1=port1,
                        port2=port2,
                        weight=weight)
+
+    def __remove_switch_to_switch_connection(self,
+                                             dpid1,
+                                             dpid2,
+                                             port1,
+                                             port2,
+                                             weight=1,
+                                             graph=None):
+        (topo_id_s1, _) = self.get_switch_by_dpid(dpid1)
+        (topo_id_s2, _) = self.get_switch_by_dpid(dpid2)
+        graph = graph if graph else self.topo
+        graph.remove_edge(topo_id_s1,
+                          topo_id_s2)
 
     def __filter_by_attribute(self,
                               attribute,
