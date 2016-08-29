@@ -30,3 +30,6 @@
    | H2  |   | H1 |   | H3  |   
    *-----*   +----+   +-----+   
 ```
+
+## Inspect
+`ovs-ofctl dump-flows s1`
