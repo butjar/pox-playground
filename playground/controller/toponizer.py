@@ -34,8 +34,8 @@ class Toponizer(EventMixin):
     def __init__(self):
         self.topo = nx.MultiDiGraph()
         self.mst = None
-        core.openflow_discovery.addListeners(self)
         core.openflow.addListeners(self)
+        core.openflow_discovery.addListeners(self)
         core.host_tracker.addListeners(self)
 
     def add_host(self, entry):
