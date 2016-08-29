@@ -50,7 +50,7 @@ def create_network(net=Mininet(controller=LoopController)):
     net.addLink(s1, s3)
     net.addLink(s2, s3)
     net.addLink(h1, s1)
-    net.addLink(h1, s2)
+    #net.addLink(h1, s2)
     net.addLink(h2, s2)
     net.addLink(h3, s3)
 
