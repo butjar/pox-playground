@@ -1,5 +1,6 @@
 import uuid
 from pox.core import core
+from pox.lib.revent import *
 import pox.openflow.discovery
 from pox.openflow.discovery import Discovery
 import pox.host_tracker
@@ -10,9 +11,21 @@ import networkx as nx
 log = core.getLogger()
 
 
-class Toponizer(object):
+class TopoUpdate (Event):
+  """
+  Topology events
+  """
+  def __init__ (self, mst, topo):
+    Event.__init__(self)
+    self.mst = mst
+    self.topo = topo
+
+class Toponizer(EventMixin):
 
     _core_name = 'toponizer'
+    _eventMixin_events = set([
+        TopoUpdate,
+    ])
 
     @staticmethod
     def assign_node_id():
@@ -92,10 +105,9 @@ class Toponizer(object):
         else:
             log.error('Unknown event on LinkEvent: {}'.format(event))
 
-        log.debug('Updating minimal spanning tree '
-                  'and pushing flow and port mods')
+        log.debug('Updating minimal spanning tree')
         self.mst = self.__minimal_spanning_tree()
-        log.debug(self.mst)
+        self.raiseEventNoErrors(TopoUpdate, self.mst, self.topo)
 
     def _handle_HostEvent(self, event):
         if event.join:
@@ -112,9 +124,9 @@ class Toponizer(object):
                 self.__add_switch_to_host_connection(entry.dpid,
                                                      entry.port,
                                                      entry.macaddr)
-            log.debug('Updating minimal spanning tree'
-                      'and pushing flow and port mods')
-            self.mst = self.__minimal_spanning_tree()
+        log.debug('Updating minimal spanning tree')
+        self.mst = self.__minimal_spanning_tree()
+        self.raiseEventNoErrors(TopoUpdate, self.mst, self.topo)
 
     # private methods
 
@@ -166,6 +178,8 @@ class Toponizer(object):
         graph = graph if graph else self.topo
         graph.remove_edge(topo_id_s1,
                           topo_id_s2)
+        self.raiseEventNoErrors(TopoUpdate, self.mst, self.topo)
+
 
     def __filter_by_attribute(self,
                               attribute,

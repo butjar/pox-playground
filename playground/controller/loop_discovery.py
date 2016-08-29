@@ -18,11 +18,19 @@ log = core.getLogger()
 class LoopDiscovery(object):
 
     def __init__(self):
+        core.toponizer.addListeners(self)
         core.openflow_discovery.addListeners(self)
         core.openflow.addListeners(self)
         core.host_tracker.addListeners(self)
 
     # Event handlers
+
+    def _handle_TopoUpdate(self, event):
+        self.__send_flood_port_mods()
+        hosts = core.toponizer.hosts()
+        for (_, host_attributes) in hosts:
+            macaddr = host_attributes['macaddr']
+            self.__send_flow_mods_for_host(macaddr)
 
     def _handle_PacketIn(self, event):
         #log.debug('Handle PacketIn')
@@ -52,13 +60,6 @@ class LoopDiscovery(object):
                 continue
             port_mod = self.__flood_port_mod(port, flood=False)
             connection.send(port_mod)
-
-    def _handle_LinkEvent(self, event):
-        self.__send_flood_port_mods()
-
-    def _handle_HostEvent(self, event):
-        entry = event.entry
-        self.__send_flow_mods_for_host(entry.macaddr)
 
     # private methods
 
