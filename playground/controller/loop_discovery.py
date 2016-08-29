@@ -25,19 +25,13 @@ class LoopDiscovery(object):
     # Event handlers
 
     def _handle_PacketIn(self, event):
-        log.debug('Recieved packet in')
+        #log.debug('Handle PacketIn')
         packet = event.parsed
         if not packet.parsed:
             log.warning("Ignoring incomplete packet")
             return
 
         # ARP ping for unknown destination
-        hosts = core.toponizer.hosts()
-        known_macs = map(lambda (_, attr): attr['macaddr'], hosts)
-        if not (packet.src in known_macs and
-                not packet.type == packet.ARP_TYPE):
-            log.debug("unknown src")
-
         msg = of.ofp_packet_out()
         msg.data = event.ofp
 
