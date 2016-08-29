@@ -69,10 +69,19 @@ class LoopDiscovery(object):
             connection = core.openflow.getConnection(attributes_s['dpid'])
             host = core.toponizer.get_host_by_macaddr(macaddr)
             (topo_id_h, attributes_h) = host
-            shortest_path = nx.shortest_path(core.toponizer.mst,
-                                             source=topo_id_s,
-                                             target=topo_id_h,
-                                             weight='weight')
+            try:
+                shortest_path = nx.shortest_path(core.toponizer.topo,
+                                                 source=topo_id_s,
+                                                 target=topo_id_h,
+                                                 weight='weight')
+                log.debug('Shortes Path between switch {} and host {}: {}'
+                          .format(topo_id_s, topo_id_h, shortest_path))
+            except nx.NetworkXNoPath:
+                log.debug('Could not find any path between switch {} and host {}'
+                          .format(topo_id_s, topo_id_h))
+                continue
+            log.debug('Sending flowmods for switch {} and host {}'
+                      .format(topo_id_s, topo_id_h))
             gateway_topo_id = shortest_path[1]
             port_to_gateway = (core.toponizer
                                    .topo[topo_id_s]
